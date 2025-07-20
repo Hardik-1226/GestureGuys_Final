@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from "react";
 import GestureToggleButton from "@/components/GestureDetector";
 import VirtualKeyboard from "@/components/VirtualKeyboard";
