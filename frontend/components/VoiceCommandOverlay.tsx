@@ -7,8 +7,22 @@ const COMMANDS = [
   { keywords: ["click"], action: () => {
     const x = window.innerWidth / 2;
     const y = window.innerHeight / 2;
-    const el = document.elementFromPoint(x, y) as HTMLElement | null;
-    if (el && el.tagName !== "A") {
+    let el = document.elementFromPoint(x, y) as HTMLElement | null;
+    // Find nearest clickable ancestor
+    while (el && !(
+      el.tagName === "BUTTON" ||
+      el.tagName === "A" ||
+      el.getAttribute("role") === "button" ||
+      el.tabIndex >= 0 ||
+      typeof (el as any).onclick === "function"
+    )) {
+      el = el.parentElement;
+    }
+    if (el) {
+      // Highlight for feedback
+      const prevBoxShadow = el.style.boxShadow;
+      el.style.boxShadow = "0 0 0 4px #8A2BE2, 0 2px 12px #0008";
+      setTimeout(() => { el.style.boxShadow = prevBoxShadow; }, 400);
       el.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: x, clientY: y }));
     }
   } },

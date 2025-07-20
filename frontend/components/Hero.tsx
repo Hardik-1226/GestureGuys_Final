@@ -63,34 +63,8 @@ export default function Hero() {
 
   return (
     <section className="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4 py-12 dark:bg-black/50 light:bg-transparent pt-24">
-      {/* Camera overlay and gesture toggle button */}
-      <GestureToggleButton />
-      {/* Virtual keyboard toggle button */}
-      <button
-        onClick={() => setShowKeyboard((prev) => !prev)}
-        style={{
-          position: 'fixed', bottom: 100, left: 32, zIndex: 10001,
-          background: showKeyboard ? '#8A2BE2' : '#444', color: '#fff', border: 'none', borderRadius: 50, width: 56, height: 56,
-          fontWeight: 'bold', fontSize: 28, boxShadow: '0 2px 12px #0008', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-        title={showKeyboard ? 'Hide Virtual Keyboard' : 'Show Virtual Keyboard'}
-      >
-        <span role="img" aria-label="keyboard">⌨️</span>
-      </button>
-      {showKeyboard && <VirtualKeyboard />}
-      {/* Voice command toggle button */}
-      <button
-        onClick={() => setShowVoice((prev) => !prev)}
-        style={{
-          position: 'fixed', bottom: 168, left: 32, zIndex: 10001,
-          background: showVoice ? '#8A2BE2' : '#444', color: '#fff', border: 'none', borderRadius: 50, width: 56, height: 56,
-          fontWeight: 'bold', fontSize: 28, boxShadow: '0 2px 12px #0008', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}
-        title={showVoice ? 'Hide Voice Command' : 'Show Voice Command'}
-      >
-        <span role="img" aria-label="microphone">🎤</span>
-      </button>
-      {showVoice && <VoiceCommandOverlay />}
+      {/* Camera overlay and gesture toggle button removed, now global */}
+      {/* Floating buttons removed, now global */}
       <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-tight mb-6 dark:text-white light:text-gray-800">
         <TypewriterEffect
           text="GestureGuy"

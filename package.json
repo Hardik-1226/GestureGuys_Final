@@ -5,6 +5,7 @@
     "@tensorflow-models/handpose": "^0.1.0",
     "@tensorflow/tfjs": "^4.22.0",
     "framer-motion": "^12.23.6",
+    "html2pdf.js": "^0.10.3",
     "next": "^15.4.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
