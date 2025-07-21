@@ -25,7 +25,7 @@ RUN pip install --upgrade pip
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY backend ./backend
+COPY . .
 
 # (Optional) Create a non-root user and switch to it
 RUN useradd -m appuser && chown -R appuser /app
@@ -35,4 +35,4 @@ USER appuser
 EXPOSE 8000
 
 # Run the app using uvicorn, using PORT env variable for Render compatibility
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
