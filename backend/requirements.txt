@@ -2,4 +2,4 @@ fastapi
 uvicorn
 cvzone
 pyautogui
-# tensorflow removed as it is no longer needed
+openai
