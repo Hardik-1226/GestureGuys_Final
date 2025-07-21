@@ -1,5 +1,4 @@
-# Use official Python image
-FROM python:3.9-slim
+FROM python:3.10
 
 # Prevent Python from writing .pyc files and buffer issues
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -37,4 +36,4 @@ USER appuser
 EXPOSE 8000
 
 # Run the app using uvicorn, using PORT env variable for Render compatibility
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}"]
+CMD ["uvicorn", "gesture:app", "--host", "0.0.0.0", "--port", "8000"]
