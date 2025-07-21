@@ -40,6 +40,7 @@ export default function Hero() {
       video.srcObject = stream;
       await video.play();
       streamRef.current = stream;
+      setMessage("Camera access granted. Initializing hand detection...");
     } catch (e) {
       setMessage("Camera access denied or not available.");
       setLoading(false);
@@ -61,14 +62,21 @@ export default function Hero() {
       if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         // Send landmarks to backend
         try {
-          await fetch(`${BACKEND_URL}/process-landmarks`, {
+          const resp = await fetch(`${BACKEND_URL}/process-landmarks`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ landmarks: results.multiHandLandmarks }),
           });
+          const data = await resp.json();
+          setMessage(`Connected to backend! Action: ${data.action}`);
+          console.log("Sent landmarks to backend:", results.multiHandLandmarks);
+          console.log("Backend response:", data);
         } catch (err) {
-          // Optionally handle backend error
+          setMessage("Error sending landmarks to backend.");
+          console.error("Error sending landmarks to backend:", err);
         }
+      } else {
+        setMessage("No hand detected. Show your hand to the camera.");
       }
     });
 

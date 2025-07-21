@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { triggerVirtualKey } from "./VirtualKeyboard";
+import { BACKEND_URL } from "@/lib/api";
 
 const COMMANDS = [
   { keywords: ["up", "scroll up"], action: () => window.scrollBy({ top: -200, behavior: "smooth" }) },
@@ -47,6 +48,20 @@ export default function VoiceCommandOverlay() {
   const [transcript, setTranscript] = useState("");
   const recognitionRef = useRef<any>(null);
 
+  const handleAIQuery = async (query: string) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/ai-assistant`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: query }),
+      });
+      const data = await res.json();
+      setTranscript(data.response || data.error || "No response from AI");
+    } catch (err) {
+      setTranscript("AI request failed");
+    }
+  };
+
   useEffect(() => {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       setTranscript("Voice recognition not supported in this browser.");
@@ -68,6 +83,12 @@ export default function VoiceCommandOverlay() {
           const toType = last.replace("type ", "");
           typeText(toType);
           setTranscript(`✔️ Typed: ${toType}`);
+          continue;
+        }
+        if (last.startsWith("ask ai ")) {
+          const query = last.replace("ask ai ", "");
+          handleAIQuery(query);
+          setTranscript("Thinking...");
           continue;
         }
         for (const cmd of COMMANDS) {
