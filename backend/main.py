@@ -24,8 +24,10 @@ def recognize_gesture(landmarks):
     if not landmarks or not isinstance(landmarks, list):
         return "no_hand"
     hand = landmarks[0]
-    if hand[8][1] < hand[12][1]:
-        return "index_above_middle"
+    # Use dict keys for JS MediaPipe format
+    if isinstance(hand[8], dict) and isinstance(hand[12], dict):
+        if hand[8]['y'] < hand[12]['y']:
+            return "index_above_middle"
     return "unknown"
 
 @app.post("/process-landmarks")
@@ -34,6 +36,10 @@ async def process_landmarks(request: Request):
     landmarks = data.get("landmarks")
     action = recognize_gesture(landmarks)
     return {"status": "received", "action": action}
+
+@app.post("/stop-gesture")
+async def stop_gesture():
+    return {"status": "stopped"}
 
 @app.get("/")
 def read_root():

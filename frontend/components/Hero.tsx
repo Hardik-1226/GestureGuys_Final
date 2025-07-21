@@ -11,6 +11,7 @@ import VirtualKeyboard from "./VirtualKeyboard";
 import VoiceCommandOverlay from "./VoiceCommandOverlay";
 import { Hands } from "@mediapipe/hands";
 import { Camera } from "@mediapipe/camera_utils";
+import { useRef } from "react";
 
 export default function Hero() {
   const [loading, setLoading] = useState(false)
@@ -18,6 +19,9 @@ export default function Hero() {
   const [activated, setActivated] = useState(false)
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [showVoice, setShowVoice] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const cameraRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const handleGetStarted = async () => {
     setLoading(true);
@@ -28,12 +32,14 @@ export default function Hero() {
     const video = document.createElement("video");
     video.style.display = "none";
     document.body.appendChild(video);
+    videoRef.current = video;
 
     let stream: MediaStream | null = null;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: true });
       video.srcObject = stream;
       await video.play();
+      streamRef.current = stream;
     } catch (e) {
       setMessage("Camera access denied or not available.");
       setLoading(false);
@@ -75,31 +81,38 @@ export default function Hero() {
       height: 480,
     });
     camera.start();
+    cameraRef.current = camera;
 
     setMessage("Gesture Control Activated! (Camera running)");
     setLoading(false);
   };
 
   const handleStop = async () => {
-    setLoading(true)
-    setMessage("")
+    setLoading(true);
+    setMessage("");
     try {
-      const res = await fetch(`${BACKEND_URL}/stop-gesture`, {
+      await fetch(`${BACKEND_URL}/stop-gesture`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-      })
-      const data = await res.json()
-      if (data.status === "stopped") {
-        setActivated(false)
-        setMessage("Gesture Control Stopped.")
-      } else {
-        setMessage("Failed to stop gesture control.")
+      });
+      setActivated(false);
+      setMessage("Gesture Control Stopped.");
+      // Stop camera and stream
+      if (cameraRef.current) cameraRef.current.stop();
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.remove();
+        videoRef.current = null;
       }
     } catch (e) {
-      setMessage("Could not connect to backend.")
+      setMessage("Could not connect to backend.");
     }
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   // (Dummy landmarks and sendLandmarks function removed)
 
