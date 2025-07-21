@@ -9,6 +9,8 @@ import { BACKEND_URL } from "@/lib/api";
 import GestureToggleButton from "@/components/GestureDetector";
 import VirtualKeyboard from "./VirtualKeyboard";
 import VoiceCommandOverlay from "./VoiceCommandOverlay";
+import { Hands } from "@mediapipe/hands";
+import { Camera } from "@mediapipe/camera_utils";
 
 export default function Hero() {
   const [loading, setLoading] = useState(false)
@@ -18,25 +20,65 @@ export default function Hero() {
   const [showVoice, setShowVoice] = useState(false);
 
   const handleGetStarted = async () => {
-    setLoading(true)
-    setMessage("")
+    setLoading(true);
+    setMessage("");
+    setActivated(true);
+
+    // Start camera and hand detection
+    const video = document.createElement("video");
+    video.style.display = "none";
+    document.body.appendChild(video);
+
+    let stream: MediaStream | null = null;
     try {
-      const res = await fetch(`${BACKEND_URL}/get-started`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-      const data = await res.json()
-      if (data.status === "started" || data.status === "already_running") {
-        setActivated(true)
-        setMessage("Gesture Control Activated!")
-      } else {
-        setMessage("Failed to activate gesture control.")
-      }
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+      await video.play();
     } catch (e) {
-      setMessage("Could not connect to backend.")
+      setMessage("Camera access denied or not available.");
+      setLoading(false);
+      return;
     }
-    setLoading(false)
-  }
+
+    // Load MediaPipe Hands
+    const hands = new Hands({
+      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+    });
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.7,
+      minTrackingConfidence: 0.7,
+    });
+
+    hands.onResults(async (results: any) => {
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        // Send landmarks to backend
+        try {
+          await fetch(`${BACKEND_URL}/process-landmarks`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ landmarks: results.multiHandLandmarks }),
+          });
+        } catch (err) {
+          // Optionally handle backend error
+        }
+      }
+    });
+
+    // Use MediaPipe Camera Utils to process video frames
+    const camera = new Camera(video, {
+      onFrame: async () => {
+        await hands.send({ image: video });
+      },
+      width: 640,
+      height: 480,
+    });
+    camera.start();
+
+    setMessage("Gesture Control Activated! (Camera running)");
+    setLoading(false);
+  };
 
   const handleStop = async () => {
     setLoading(true)
