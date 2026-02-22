@@ -1,7 +1,5 @@
 "use client";
 import React, { useRef, useEffect, useState } from "react";
-import { Hands } from "@mediapipe/hands";
-import { Camera } from "@mediapipe/camera_utils";
 
 const instructions = [
   { gesture: "Move index finger", action: "Move cursor (inverted X, smoothed)" },
@@ -62,118 +60,11 @@ export function GestureDetector({ enabled, showInstructions }: { enabled: boolea
   useEffect(() => {
     if (!enabled || !videoRef.current) return;
 
-    let camera: Camera;
-    let stream: MediaStream | null = null;
-    const hands = new Hands({
-      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
-    });
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.7,
-      minTrackingConfidence: 0.7,
-    });
-
-    hands.onResults((results: any) => {
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const hand = results.multiHandLandmarks[0];
-        // Invert X for cursor movement (mirror effect)
-        const [targetX, targetY] = [
-          (1 - hand[8].x) * window.innerWidth,
-          hand[8].y * window.innerHeight,
-        ];
-        // Clamp cursor to viewport
-        const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
-        cursorPos.current.x = lerp(cursorPos.current.x, clamp(targetX, 0, window.innerWidth), 0.3);
-        cursorPos.current.y = lerp(cursorPos.current.y, clamp(targetY, 0, window.innerHeight), 0.3);
-        const cursor = document.getElementById("gesture-cursor");
-        if (cursor) {
-          cursor.style.left = `${cursorPos.current.x - 10}px`;
-          cursor.style.top = `${cursorPos.current.y - 10}px`;
-        }
-        // Pinch (index tip near thumb tip) for click/double click
-        const pinchDist = Math.hypot(hand[8].x - hand[4].x, hand[8].y - hand[4].y);
-        const isPinching = pinchDist < 0.05;
-        const now = Date.now();
-        if (isPinching && !lastPinch.current) {
-          if (now - lastDoubleClickTime.current < COOLDOWNS.doubleClick) {
-            // Double click
-            if (now - lastClickTime.current > COOLDOWNS.doubleClick) {
-              setLastGesture("Double Click");
-              // Prevent navigation: only dispatch event if element is not a link
-              const el = document.elementFromPoint(cursorPos.current.x, cursorPos.current.y) as HTMLElement | null;
-              if (el && el.tagName !== "A" && el.tagName !== "BUTTON") {
-                el.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, clientX: cursorPos.current.x, clientY: cursorPos.current.y }));
-              }
-              lastClickTime.current = now;
-            }
-          } else if (now - lastClickTime.current > COOLDOWNS.click) {
-            // Single click
-            setLastGesture("Click");
-            const el = document.elementFromPoint(cursorPos.current.x, cursorPos.current.y) as HTMLElement | null;
-            if (el && el.tagName !== "A") {
-              el.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: cursorPos.current.x, clientY: cursorPos.current.y }));
-            }
-            lastClickTime.current = now;
-            lastDoubleClickTime.current = now;
-          }
-        }
-        lastPinch.current = isPinching;
-        // Thumbs up/down for scroll
-        // Thumb: 4, Index: 8, Middle: 12, Ring: 16, Pinky: 20
-        const isThumbUp = hand[4].y < hand[3].y && hand[4].y < hand[8].y && hand[4].y < hand[12].y && hand[4].y < hand[16].y && hand[4].y < hand[20].y;
-        const isThumbDown = hand[4].y > hand[3].y && hand[4].y > hand[8].y && hand[4].y > hand[12].y && hand[4].y > hand[16].y && hand[4].y > hand[20].y;
-        if (isThumbUp && now - lastScrollTime.current > COOLDOWNS.scroll) {
-          setLastGesture("Scroll Up");
-          window.scrollBy({ top: -200, behavior: "smooth" });
-          lastScrollTime.current = now;
-        } else if (isThumbDown && now - lastScrollTime.current > COOLDOWNS.scroll) {
-          setLastGesture("Scroll Down");
-          window.scrollBy({ top: 200, behavior: "smooth" });
-          lastScrollTime.current = now;
-        }
-        // Optimized zoom: only trigger once per gesture
-        const zoomInDist = Math.hypot(hand[4].x - hand[20].x, hand[4].y - hand[20].y);
-        const isZoomIn = zoomInDist > 0.35;
-        if (isZoomIn && !lastZoomIn.current && now - lastZoomTime.current > COOLDOWNS.zoom) {
-          setLastGesture("Zoom In");
-          document.body.style.zoom = `${Math.min((Number(document.body.style.zoom) || 1) + 0.1, 2)}`;
-          lastZoomTime.current = now;
-        }
-        lastZoomIn.current = isZoomIn;
-        const zoomOutDist = Math.hypot(hand[4].x - hand[12].x, hand[4].y - hand[12].y);
-        const isZoomOut = zoomOutDist < 0.05;
-        if (isZoomOut && !lastZoomOut.current && now - lastZoomTime.current > COOLDOWNS.zoom) {
-          setLastGesture("Zoom Out");
-          document.body.style.zoom = `${Math.max((Number(document.body.style.zoom) || 1) - 0.1, 0.5)}`;
-          lastZoomTime.current = now;
-        }
-        lastZoomOut.current = isZoomOut;
-      }
-    });
-
-    camera = new Camera(videoRef.current, {
-      onFrame: async () => {
-        if (videoRef.current) {
-          await hands.send({ image: videoRef.current });
-        }
-      },
-      width: 640,
-      height: 480,
-    });
-    camera.start();
-
-    // Save the stream for cleanup
-    stream = videoRef.current.srcObject as MediaStream | null;
-
+    // Gesture detection is temporarily disabled due to module compatibility issues
+    // TODO: Implement gesture detection with dynamic script loading or alternative library
+    
     return () => {
-      camera && camera.stop();
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
+      // Cleanup
     };
   }, [enabled]);
 

@@ -4,14 +4,11 @@ import { Button } from "@/components/ui/button"
 import { SparklesIcon, RocketIcon, LightbulbIcon } from "lucide-react"
 import TypewriterEffect from "./TypewriterEffect"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { BACKEND_URL } from "@/lib/api";
 import GestureToggleButton from "@/components/GestureDetector";
 import VirtualKeyboard from "./VirtualKeyboard";
 import VoiceCommandOverlay from "./VoiceCommandOverlay";
-import { Hands } from "@mediapipe/hands";
-import { Camera } from "@mediapipe/camera_utils";
-import { useRef } from "react";
 
 export default function Hero() {
   const [loading, setLoading] = useState(false)
